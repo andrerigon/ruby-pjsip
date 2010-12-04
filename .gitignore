@@ -1,0 +1,4 @@
+Rpjsip/*.o
+Rpjsip/compilling_opts.txt
+Rpjsip/*.log
+Rpjsip/*.bundle
