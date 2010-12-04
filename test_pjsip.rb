@@ -1,15 +1,8 @@
-# Load in the extension (on OS X this loads ./MyTest/mytest.bundle - unsure about Linux, possibly mytest.so)
 require 'rubygems'
-puts require 'rpjsip'
+require 'rpjsip'
 
-# MyTest is now a module, so we need to include it
-include rpjsip
+include Rpjsip
 
-# Call and print the result from the test1 method
-puts test1
-
-puts add(1,2)
-
-puts pjsip  
-
-# => 10
+account_id = pjsip_init "proxy.azzu.com.br", "azzu", "12013283", "12345"
+call account_id , "03496739006", "azzu"
+puts pjsip_destroy
