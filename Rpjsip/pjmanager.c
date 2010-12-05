@@ -1,9 +1,6 @@
 #include <pjsua-lib/pjsua.h>
 #define THIS_FILE	"APP"
 
-#define SIP_DOMAIN	"azzu"
-#define SIP_USER	"12013283"
-#define SIP_PASSWD	"12345"
 
 #include <stdlib.h>
 
@@ -95,12 +92,14 @@ int init(  char *domain, char * user, char * passwd, char *proxy)
 
     /* Add UDP transport. */
     {
-	pjsua_transport_config cfg;
-
-	pjsua_transport_config_default(&cfg);
-	cfg.port = 55060;
-	status = pjsua_transport_create(PJSIP_TRANSPORT_UDP, &cfg, NULL);
-	if (status != PJ_SUCCESS) error_exit("Error creating transport", status);
+		pjsua_transport_config cfg;
+		pjsua_transport_config_default(&cfg);
+		cfg.port = 55060;
+		status = pjsua_transport_create(PJSIP_TRANSPORT_UDP, &cfg, NULL);
+		if (status != PJ_SUCCESS)
+		{
+			error_exit("Error creating transport", status) ;
+		}
     }
 
     /* Initialization is done, now start pjsua */
@@ -124,7 +123,7 @@ int init(  char *domain, char * user, char * passwd, char *proxy)
 	cfg.id = pj_str(id);
     cfg.reg_uri = pj_str(reg_uri);
     cfg.cred_count = 1;
-    cfg.cred_info[0].scheme = pj_str("digest");
+    cfg.cred_info[0].scheme = pj_str((char*)"digest");
     cfg.cred_info[0].realm = pj_str(domain);
     cfg.cred_info[0].username = pj_str(user);
     cfg.cred_info[0].data_type = PJSIP_CRED_DATA_PLAIN_PASSWD;
@@ -136,53 +135,34 @@ int init(  char *domain, char * user, char * passwd, char *proxy)
 	status = pjsua_acc_add(&cfg, PJ_TRUE, &acc_id);
 	if (status != PJ_SUCCESS) error_exit("Error adding account", status);
     }
-
-  
-	printf("\n\n\n\n---------> acc_id => %d\n\n\n", acc_id);
 	return acc_id;
 }
 
-int call( long acc_id, char* number, char* domain ){
-
+int call( int acc_id, char* number, char* domain )
+{
 		char str_uri[13+strlen(number)+strlen(domain)];
 
 		sprintf( str_uri, "sip:%s@%s.com.br", number, domain);
 
 		pj_str_t uri = pj_str(str_uri);
-		pjsua_call_id *call_id;
-	    pj_status_t	status = pjsua_call_make_call(acc_id, &uri, 0, NULL, NULL, call_id);
-		if (status != PJ_SUCCESS) { error_exit("Error making call", status); }
+		pjsua_call_id call_id;
+		
+	    pj_status_t	status = pjsua_call_make_call(acc_id, &uri, 0, NULL, NULL, &call_id);
 
-		if (rb_block_given_p()) {
-		    rb_yield();
-		  }
-
-	    /* Wait until user press "q" to quit. */
-	   /*for (;;) {
-		char option[10];
-
-		puts("Press 'h' to hangup all calls, 'q' to quit");
-		if (fgets(option, sizeof(option), stdin) == NULL) {
-		    puts("EOF while reading stdin, will quit now..");
-		    break;
+		if (status != PJ_SUCCESS) 
+		{ 
+			error_exit("Error making call", status); 
 		}
-
-		if (option[0] == 'q')
-		    break;
-
-		if (option[0] == 'h')
-		    pjsua_call_hangup_all();
-	    }*/
-	
-			return *call_id;
+		return call_id;
 }
 
-void destroy(){
+void destroy()
+{
 	pjsua_destroy();
 }
 
-void endCall(int call_id){
-	printf( "\n\n\n\nending call %d\n\n\n", call_id );
+void endCall(int call_id)
+{
 	pjsua_call_id id = call_id;
 	pjsua_call_hangup(id, 0, NULL, NULL);	
 }
