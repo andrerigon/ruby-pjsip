@@ -142,19 +142,23 @@ int init(  char *domain, char * user, char * passwd, char *proxy)
 	return acc_id;
 }
 
-void call( long acc_id, char* number, char* domain ){
+int call( long acc_id, char* number, char* domain ){
 
 		char str_uri[13+strlen(number)+strlen(domain)];
 
 		sprintf( str_uri, "sip:%s@%s.com.br", number, domain);
 
 		pj_str_t uri = pj_str(str_uri);
-	    pj_status_t	status = pjsua_call_make_call(acc_id, &uri, 0, NULL, NULL, NULL);
-		if (status != PJ_SUCCESS) error_exit("Error making call", status);
+		pjsua_call_id *call_id;
+	    pj_status_t	status = pjsua_call_make_call(acc_id, &uri, 0, NULL, NULL, call_id);
+		if (status != PJ_SUCCESS) { error_exit("Error making call", status); }
 
+		if (rb_block_given_p()) {
+		    rb_yield();
+		  }
 
 	    /* Wait until user press "q" to quit. */
-	   for (;;) {
+	   /*for (;;) {
 		char option[10];
 
 		puts("Press 'h' to hangup all calls, 'q' to quit");
@@ -168,10 +172,17 @@ void call( long acc_id, char* number, char* domain ){
 
 		if (option[0] == 'h')
 		    pjsua_call_hangup_all();
-	    }
+	    }*/
+	
+			return *call_id;
 }
 
 void destroy(){
 	pjsua_destroy();
 }
 
+void endCall(int call_id){
+	printf( "\n\n\n\nending call %d\n\n\n", call_id );
+	pjsua_call_id id = call_id;
+	pjsua_call_hangup(id, 0, NULL, NULL);	
+}
